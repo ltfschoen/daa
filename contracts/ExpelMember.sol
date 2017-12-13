@@ -10,8 +10,8 @@ contract ExpelMember is Proposals {
 
     mapping (uint256 => address) membersToExpel;
 
-    function ExpelMember(uint256 _fee, address _whitelister1, address _whitelister2)
-        Proposals(_fee, _whitelister1, _whitelister2) {
+    function ExpelMember(address _membership)
+        Proposals(_membership) {
 
     }
 
@@ -57,14 +57,14 @@ contract ExpelMember is Proposals {
         // for * 3 >= (for + against) * 2
         Proposal storage proposal = proposals[EXPEL_MEMBER][proposalId];
         uint256 allVoted = proposal.votesFor.add(proposal.votesAgainst);
-        bool res = allVoted.mul(uint256(10)) >= getAllMembersCount() &&
+        bool res = allVoted.mul(uint256(10)) >= membership.getAllMembersCount() &&
             proposal.votesFor.mul(uint256(3)) >= allVoted.mul(uint256(2));
 
         proposal.result = res;
         proposal.concluded = true;
         if (res) {
             address addrs = membersToExpel[proposalId];
-            delete members[addrs];
+            // TODO: delete members[addrs];
         }
     }
 

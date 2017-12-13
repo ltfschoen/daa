@@ -1,10 +1,12 @@
 pragma solidity ^0.4.15;
 
 
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import './Membership.sol';
 
 
-contract Proposals is Membership {
+contract Proposals {
+    using SafeMath for uint256;
 
     // enum ProposalType {SIMPLE_PROPOSAL, EXPEL_MEMBER, DELEGATE_CANDIDACY, DISCHARGE,
     //    GENERAL_ASSEMBLY, DISSOLUTION, CHANGE_STATUTES, UPDATE_ORGANIZATION}
@@ -38,9 +40,25 @@ contract Proposals is Membership {
 
     mapping(uint256 => Proposal[]) proposals;
 
-    function Proposals(uint256 _fee, address _whitelister1, address _whitelister2)
-        Membership(_fee, _whitelister1, _whitelister2)  {
+    Membership membership;
 
+    function Proposals(address _membership) {
+        membership = Membership(_membership);
+    }
+
+    modifier onlyMember() {
+        require(membership.isMember(msg.sender));
+        _;
+    }
+
+    modifier onlyDelegate() {
+        require(membership.isDelegate(msg.sender));
+        _;
+    }
+
+    modifier onlyWhitelister() {
+        require(membership.isWhitelister(msg.sender));
+        _;
     }
 
     function submitProposal(

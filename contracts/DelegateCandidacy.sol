@@ -21,8 +21,8 @@ contract DelegateCandidacy is ExtraordinaryGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function DelegateCandidacy(uint256 _fee, address _whitelister1, address _whitelister2)
-        ExtraordinaryGA(_fee, _whitelister1, _whitelister2) {
+    function DelegateCandidacy(address _membership)
+        ExtraordinaryGA(_membership) {
 
     }
 
@@ -111,7 +111,7 @@ contract DelegateCandidacy is ExtraordinaryGA {
 
         if (count == 1 && maxVotes > 0) {
             address newDelegate = concl[indexArray[0]].candidate;
-            setDelegate(newDelegate);
+            // TODO: setDelegate(newDelegate);
         } else {
             // re-vote
             for (i = 0; i < voted[date].length; i++) {

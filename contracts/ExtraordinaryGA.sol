@@ -24,8 +24,8 @@ contract ExtraordinaryGA is Proposals {
     mapping (uint256 => GA) datesForVoting; // uint256 => uint256
     mapping (address => bool) proposalMade;
 
-    function ExtraordinaryGA(uint256 _fee, address _whitelister1, address _whitelister2)
-        Proposals(_fee, _whitelister1, _whitelister2) {
+    function ExtraordinaryGA(address _membership)
+        Proposals(_membership) {
 
     }
 
@@ -153,13 +153,13 @@ contract ExtraordinaryGA is Proposals {
         // ⅕ of all members have to vote yes
         // for * 5 >= (all members) * 1
         Proposal storage proposal = proposals[GENERAL_ASSEMBLY][proposalId];
-        bool res = proposal.votesFor.mul(uint256(5)) >= getAllMembersCount();
+        bool res = proposal.votesFor.mul(uint256(5)) >= membership.getAllMembersCount();
 
         proposal.result = res;
         proposal.concluded = true;
 
         if (datesForVoting[proposalId].stepDown) {
-            removeDelegate();
+            // TODO: removeDelegate();
         }
 
         if (res) {

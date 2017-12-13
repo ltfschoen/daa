@@ -13,8 +13,8 @@ contract ChangeStatutes is ExtraordinaryGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function ChangeStatutes(uint256 _fee, address _whitelister1, address _whitelister2)
-        ExtraordinaryGA(_fee, _whitelister1, _whitelister2) {
+    function ChangeStatutes(address _membership)
+        ExtraordinaryGA(_membership) {
 
     }
 
@@ -57,7 +57,7 @@ contract ChangeStatutes is ExtraordinaryGA {
         // ⅔ of all existing members have to vote “yes”
         // for * 3 >= (all members) * 2
         Proposal storage proposal = proposals[CHANGE_STATUTES][proposalId];
-        bool res = proposal.votesFor.mul(uint256(3)) >= getAllMembersCount().mul(uint256(2));
+        bool res = proposal.votesFor.mul(uint256(3)) >= membership.getAllMembersCount().mul(uint256(2));
 
         proposal.result = res;
         proposal.concluded = true;

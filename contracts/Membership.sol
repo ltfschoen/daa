@@ -47,20 +47,32 @@ contract Membership {
 
     // delegate, whitelister are also members
     modifier onlyMember() {
-        require(members[msg.sender].memberType == MemberTypes.EXISTING_MEMBER
-            || members[msg.sender].memberType == MemberTypes.WHITELISTER
-            || members[msg.sender].memberType == MemberTypes.DELEGATE);
+        require(isMember(msg.sender));
         _;
     }
 
     modifier onlyDelegate() {
-        require(members[msg.sender].memberType == MemberTypes.DELEGATE);
+        require(isDelegate(msg.sender));
         _;
     }
 
     modifier onlyWhitelister() {
-        require(members[msg.sender].memberType == MemberTypes.WHITELISTER);
+        require(isWhitelister(msg.sender));
         _;
+    }
+
+    function isMember(address addrs) public constant returns (bool) {
+        return members[addrs].memberType == MemberTypes.EXISTING_MEMBER
+            || members[addrs].memberType == MemberTypes.WHITELISTER
+            || members[addrs].memberType == MemberTypes.DELEGATE;
+    }
+
+    function isDelegate(address addrs) public constant returns (bool) {
+        return members[addrs].memberType == MemberTypes.DELEGATE;
+    }
+
+    function isWhitelister(address addrs) public constant returns (bool) {
+        return members[addrs].memberType == MemberTypes.WHITELISTER;
     }
 
 
@@ -151,7 +163,7 @@ contract Membership {
         members[delegate].memberType = MemberTypes.EXISTING_MEMBER;
     }
 
-    function removeMember(address addrs) internal {
+    function removeMember(address addrs) private {
         require(addrs != address(0));
         if (members[addrs].memberType != MemberTypes.NOT_MEMBER) {
             allMembers = allMembers.sub(1);

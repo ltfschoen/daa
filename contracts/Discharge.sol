@@ -8,8 +8,8 @@ contract Discharge is ExtraordinaryGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function Discharge(uint256 _fee, address _whitelister1, address _whitelister2)
-        ExtraordinaryGA(_fee, _whitelister1, _whitelister2) {
+    function Discharge(address _membership)
+        ExtraordinaryGA(_membership) {
 
     }
 

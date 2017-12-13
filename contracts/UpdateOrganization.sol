@@ -8,8 +8,8 @@ contract UpdateOrganization is ExtraordinaryGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function UpdateOrganization(uint256 _fee, address _whitelister1, address _whitelister2)
-        ExtraordinaryGA(_fee, _whitelister1, _whitelister2) {
+    function UpdateOrganization(address _membership)
+        ExtraordinaryGA(_membership) {
 
     }
 
@@ -46,7 +46,7 @@ contract UpdateOrganization is ExtraordinaryGA {
         // ⅔ of all existing members have to vote “yes”
         // for * 3 >= (all members) * 2
         Proposal storage proposal = proposals[UPDATE_ORGANIZATION][proposalId];
-        bool res = proposal.votesFor.mul(uint256(3)) >= getAllMembersCount().mul(uint256(2));
+        bool res = proposal.votesFor.mul(uint256(3)) >= membership.getAllMembersCount().mul(uint256(2));
 
         proposal.result = res;
         proposal.concluded = true;

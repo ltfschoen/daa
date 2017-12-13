@@ -6,8 +6,8 @@ import './Proposals.sol';
 
 contract SimpleProposals is Proposals {
 
-    function SimpleProposals(uint256 _fee, address _whitelister1, address _whitelister2)
-        Proposals(_fee, _whitelister1, _whitelister2) {
+    function SimpleProposals(address _membership)
+        Proposals(_membership) {
 
     }
 
