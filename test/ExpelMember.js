@@ -11,10 +11,12 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const Membership = artifacts.require('Membership.sol');
 const ExpelMember = artifacts.require('ExpelMember.sol');
 
 contract('ExpelMember', function(accounts) {
 
+    let membership;
     let expelMember;
 
     const membershipFee = new web3.BigNumber(web3.toWei(0.1, 'ether'));
@@ -41,25 +43,24 @@ contract('ExpelMember', function(accounts) {
     });
 
     beforeEach(async function() {
-        expelMember = await ExpelMember.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        expelMember = await ExpelMember.new(membership.address);
+        await membership.setDAA(expelMember.address, {from: delegate});
 
-        await expelMember.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await expelMember.addWhitelister(newWhitelister1, {from: delegate});
-        // await expelMember.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await expelMember.whitelistMember(newMember, {from: newWhitelister1});
-        await expelMember.whitelistMember(newMember, {from: newWhitelister2});
-
-        await expelMember.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
 
 
-        await expelMember.requestMembership({from: memberToExpel});
+        await membership.requestMembership({from: memberToExpel});
 
-        await expelMember.whitelistMember(memberToExpel, {from: newWhitelister1});
-        await expelMember.whitelistMember(memberToExpel, {from: newWhitelister2});
+        await membership.whitelistMember(memberToExpel, {from: newWhitelister1});
+        await membership.whitelistMember(memberToExpel, {from: newWhitelister2});
 
-        await expelMember.payMembership({from: memberToExpel, value: membershipFee});
+        await membership.payMembership({from: memberToExpel, value: membershipFee});
 
     });
 
@@ -118,7 +119,7 @@ contract('ExpelMember', function(accounts) {
         proposal[8].should.equal(true); // concluded
         proposal[9].should.equal(true); // result
 
-        const member = await expelMember.getMember(memberToExpel);
+        const member = await membership.getMember(memberToExpel);
         member[0].should.be.bignumber.equal(0); // EXISTING_MEMBER = 2;
         member[1].should.be.bignumber.equal(0); // whitelisted
         member[2].should.equal(false); // paid

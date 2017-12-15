@@ -65,6 +65,7 @@ contract ExpelMember is Proposals {
         if (res) {
             address addrs = membersToExpel[proposalId];
             // TODO: delete members[addrs];
+            membership.expelMember(addrs);
         }
     }
 

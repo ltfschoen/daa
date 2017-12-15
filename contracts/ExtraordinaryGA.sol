@@ -159,7 +159,7 @@ contract ExtraordinaryGA is Proposals {
         proposal.concluded = true;
 
         if (datesForVoting[proposalId].stepDown) {
-            // TODO: removeDelegate();
+            membership.removeDelegate();
         }
 
         if (res) {

@@ -20,6 +20,8 @@ contract Membership {
     address public delegate;
     uint256 public fee;
 
+    address public daa;
+
     mapping (address => Member) public members;
     uint256 allMembers;
 
@@ -37,7 +39,6 @@ contract Membership {
         members[_whitelister1] = Member(MemberTypes.WHITELISTER, 0, false, now);
         members[_whitelister2] = Member(MemberTypes.WHITELISTER, 0, false, now);
         allMembers = 3;
-        // fee = 100000000000000000; // 0.1 Ether
         fee = _fee;
     }
 
@@ -61,6 +62,11 @@ contract Membership {
         _;
     }
 
+    modifier onlyDAA() {
+        require(daa != address(0) && daa == msg.sender);
+        _;
+    }
+
     function isMember(address addrs) public constant returns (bool) {
         return members[addrs].memberType == MemberTypes.EXISTING_MEMBER
             || members[addrs].memberType == MemberTypes.WHITELISTER
@@ -75,6 +81,10 @@ contract Membership {
         return members[addrs].memberType == MemberTypes.WHITELISTER;
     }
 
+    function setDAA(address _daa) public onlyDelegate { // onlyOwner
+        require(_daa != address(0));
+        daa = _daa;
+    }
 
     function requestMembership() public {
         members[msg.sender] = Member(MemberTypes.NOT_MEMBER, 0, false, now);
@@ -103,8 +113,14 @@ contract Membership {
     }
 
     function payMembership() public payable {
-        // require(members[msg.sender].requestTime > 0); // TODO: ?
+        // TODO: check if member exists
+        // require(members[msg.sender].requestTime > 0);
         require(msg.value == fee);
+
+        // TODO:
+        // require(daa != address(0));
+        // daa.transfer(msg.value);
+
         members[msg.sender].paid = true;
         if(members[msg.sender].whitelisted >= 2) {
             concludeJoining(msg.sender);
@@ -128,13 +144,15 @@ contract Membership {
     function getMember(address addrs) public constant returns (
         uint256,
         uint256,
-        bool
+        bool,
+        uint256
     ) {
         uint256 memberType = uint256(members[addrs].memberType);
         uint256 whitelisted = members[addrs].whitelisted;
         bool paid = members[addrs].paid;
+        uint256 requestTime = members[addrs].requestTime;
 
-        return (memberType, whitelisted, paid);
+        return (memberType, whitelisted, paid, requestTime);
     }
 
     // Anyone (even non members) can call this function
@@ -147,7 +165,8 @@ contract Membership {
         removeMember(addrs);
     }
 
-    function setDelegate(address newDelegate) internal onlyMember {
+    // from DelegateCandidacy
+    function setDelegate(address newDelegate) public onlyDAA {
         require(newDelegate != address(0));
         require(delegate != newDelegate);
         members[delegate].memberType = MemberTypes.EXISTING_MEMBER;
@@ -158,9 +177,20 @@ contract Membership {
         members[newDelegate].memberType = MemberTypes.DELEGATE;
     }
 
-    function removeDelegate() internal onlyMember {
+    // from ExtraordinaryGA
+    function removeDelegate() public onlyDAA {
         require(delegate != address(0));
         members[delegate].memberType = MemberTypes.EXISTING_MEMBER;
+    }
+
+    // from ExpelMember
+    function expelMember(address addrs) public onlyDAA {
+        removeMember(addrs);
+    }
+
+    // from UpdateOrganization, Dissolution
+    function destroy(address addrs) public onlyDAA {
+        selfdestruct(addrs);
     }
 
     function removeMember(address addrs) private {

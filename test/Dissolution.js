@@ -11,10 +11,12 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const Membership = artifacts.require('Membership.sol');
 const Dissolution = artifacts.require('Dissolution.sol');
 
 contract('Dissolution', function(accounts) {
 
+    let membership;
     let dissolution;
     let gaDate;
 
@@ -42,17 +44,16 @@ contract('Dissolution', function(accounts) {
     });
 
     beforeEach(async function() {
-        dissolution = await Dissolution.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        dissolution = await Dissolution.new(membership.address);
+        await membership.setDAA(dissolution.address, {from: delegate});
 
-        await dissolution.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await dissolution.addWhitelister(newWhitelister1, {from: delegate});
-        // await dissolution.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await dissolution.whitelistMember(newMember, {from: newWhitelister1});
-        await dissolution.whitelistMember(newMember, {from: newWhitelister2});
-
-        await dissolution.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
 
 
         gaDate = latestTime() + duration.weeks(10);
@@ -120,7 +121,7 @@ contract('Dissolution', function(accounts) {
     });
 
     it('should conclude vote for Dissolution (result true)', async function() {
-        const startContractBalance = await web3.eth.getBalance(dissolution.address);
+        const startContractBalance = await web3.eth.getBalance(membership.address); // dissolution.address
         const startBeneficiaryBalance = await web3.eth.getBalance(beneficiary);
 
 
@@ -144,7 +145,7 @@ contract('Dissolution', function(accounts) {
         proposal[8].should.equal(false); // concluded
         proposal[9].should.equal(false); // result
 
-        const member = await dissolution.getMember(delegate);
+        const member = await membership.getMember(delegate);
         member[0].should.be.bignumber.equal(0); // DELEGATE = 2;
 
 
@@ -175,7 +176,7 @@ contract('Dissolution', function(accounts) {
         proposal[8].should.equal(true); // concluded
         proposal[9].should.equal(false); // result
 
-        const member = await dissolution.getMember(delegate);
+        const member = await membership.getMember(delegate);
         member[0].should.be.bignumber.equal(2); // DELEGATE = 2;
     });
 

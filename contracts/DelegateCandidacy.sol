@@ -111,7 +111,7 @@ contract DelegateCandidacy is ExtraordinaryGA {
 
         if (count == 1 && maxVotes > 0) {
             address newDelegate = concl[indexArray[0]].candidate;
-            // TODO: setDelegate(newDelegate);
+            membership.setDelegate(newDelegate);
         } else {
             // re-vote
             for (i = 0; i < voted[date].length; i++) {

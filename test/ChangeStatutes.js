@@ -15,10 +15,12 @@ function toAscii(hexString) {
     return web3.toAscii(hexString).replace(/\0/g, '');
 }
 
+const Membership = artifacts.require('Membership.sol');
 const ChangeStatutes = artifacts.require('ChangeStatutes.sol');
 
 contract('ChangeStatutes', function(accounts) {
 
+    let membership;
     let changeStatutes;
     let gaDate;
 
@@ -48,17 +50,16 @@ contract('ChangeStatutes', function(accounts) {
     });
 
     beforeEach(async function() {
-        changeStatutes = await ChangeStatutes.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        changeStatutes = await ChangeStatutes.new(membership.address);
+        await membership.setDAA(changeStatutes.address, {from: delegate});
 
-        await changeStatutes.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await changeStatutes.addWhitelister(newWhitelister1, {from: delegate});
-        // await changeStatutes.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await changeStatutes.whitelistMember(newMember, {from: newWhitelister1});
-        await changeStatutes.whitelistMember(newMember, {from: newWhitelister2});
-
-        await changeStatutes.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
 
         gaDate = latestTime() + duration.weeks(10);
         await changeStatutes.proposeGeneralAssemblyDate(gaDate, {from: newMember});
@@ -93,8 +94,8 @@ contract('ChangeStatutes', function(accounts) {
     });
 
     it('should set hash of statutes (from non-member)', async function() {
-        const m = await changeStatutes.getMember(nonMember);
-        m[0].should.be.bignumber.equal(0); // NOT_MEMBER = 0;
+        const member = await membership.getMember(nonMember);
+        member[0].should.be.bignumber.equal(0); // NOT_MEMBER = 0;
 
         try {
             await changeStatutes.setHashOfStatutes(hashOfStatutes, {from: nonMember});

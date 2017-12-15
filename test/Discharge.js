@@ -11,10 +11,12 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const Membership = artifacts.require('Membership.sol');
 const Discharge = artifacts.require('Discharge.sol');
 
 contract('Discharge', function(accounts) {
 
+    let membership;
     let discharge;
     let annualGADate;
 
@@ -40,17 +42,16 @@ contract('Discharge', function(accounts) {
     });
 
     beforeEach(async function() {
-        discharge = await Discharge.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        discharge = await Discharge.new(membership.address);
+        await membership.setDAA(discharge.address, {from: delegate});
 
-        await discharge.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await discharge.addWhitelister(newWhitelister1, {from: delegate});
-        // await discharge.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await discharge.whitelistMember(newMember, {from: newWhitelister1});
-        await discharge.whitelistMember(newMember, {from: newWhitelister2});
-
-        await discharge.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
 
 
         annualGADate = latestTime() + duration.weeks(10);

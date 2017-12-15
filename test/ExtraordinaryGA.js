@@ -11,10 +11,12 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const Membership = artifacts.require('Membership.sol');
 const ExtraordinaryGA = artifacts.require('ExtraordinaryGA.sol');
 
 contract('ExtraordinaryGA', function(accounts) {
 
+    let membership;
     let extraordinaryGA;
     let date;
 
@@ -39,19 +41,18 @@ contract('ExtraordinaryGA', function(accounts) {
     });
 
     beforeEach(async function() {
-        extraordinaryGA = await ExtraordinaryGA.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        extraordinaryGA = await ExtraordinaryGA.new(membership.address);
+        await membership.setDAA(extraordinaryGA.address, {from: delegate});
 
         date = latestTime() + duration.weeks(7);
 
-        await extraordinaryGA.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await extraordinaryGA.addWhitelister(newWhitelister1, {from: delegate});
-        // await extraordinaryGA.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await extraordinaryGA.whitelistMember(newMember, {from: newWhitelister1});
-        await extraordinaryGA.whitelistMember(newMember, {from: newWhitelister2});
-
-        await extraordinaryGA.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
     });
 
     it('should propose General Assembly date', async function() {
@@ -159,7 +160,7 @@ contract('ExtraordinaryGA', function(accounts) {
     });
 
     it('should step down and propose GA', async function() {
-        let member = await extraordinaryGA.getMember(delegate);
+        let member = await membership.getMember(delegate);
         member[0].should.be.bignumber.equal(2); // DELEGATE = 2;
 
         await extraordinaryGA.stepDownAndProposeGA(date, {from: delegate});
@@ -184,7 +185,7 @@ contract('ExtraordinaryGA', function(accounts) {
         latestAddedGA[3].should.equal(false); // annual
         latestAddedGA[4].should.equal(true); // stepDown
 
-        member = await extraordinaryGA.getMember(delegate);
+        member = await membership.getMember(delegate);
         member[0].should.be.bignumber.equal(1); // EXISTING_MEMBER = 1;
     });
 

@@ -11,10 +11,12 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const Membership = artifacts.require('Membership.sol');
 const DelegateCandidacy = artifacts.require('DelegateCandidacy.sol');
 
 contract('DelegateCandidacy', function(accounts) {
 
+    let membership;
     let delegateCandidacy;
     let gaDate;
 
@@ -42,17 +44,16 @@ contract('DelegateCandidacy', function(accounts) {
     });
 
     beforeEach(async function() {
-        delegateCandidacy = await DelegateCandidacy.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        delegateCandidacy = await DelegateCandidacy.new(membership.address);
+        await membership.setDAA(delegateCandidacy.address, {from: delegate});
 
-        await delegateCandidacy.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await delegateCandidacy.addWhitelister(newWhitelister1, {from: delegate});
-        // await delegateCandidacy.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await delegateCandidacy.whitelistMember(newMember, {from: newWhitelister1});
-        await delegateCandidacy.whitelistMember(newMember, {from: newWhitelister2});
-
-        await delegateCandidacy.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
 
 
         gaDate = latestTime() + duration.weeks(10);
@@ -152,7 +153,7 @@ contract('DelegateCandidacy', function(accounts) {
         proposal0[8].should.equal(true); // concluded
         proposal0[9].should.equal(false); // ! result
 
-        let member1 = await delegateCandidacy.getMember(newMember);
+        let member1 = await membership.getMember(newMember);
         member1[0].should.be.bignumber.equal(1); // EXISTING_MEMBER = 1;
 
         // ====
@@ -176,10 +177,10 @@ contract('DelegateCandidacy', function(accounts) {
         await delegateCandidacy.calculateAllVotesForDelegate({from: delegate});
         // ===
 
-        const member2 = await delegateCandidacy.getMember(newWhitelister1);
+        const member2 = await membership.getMember(newWhitelister1);
         member2[0].should.be.bignumber.equal(3); // WHITELISTER = 3;
 
-        member1 = await delegateCandidacy.getMember(newMember);
+        member1 = await membership.getMember(newMember);
         member1[0].should.be.bignumber.equal(2); // DELEGATE = 2;
     });
 
@@ -198,7 +199,7 @@ contract('DelegateCandidacy', function(accounts) {
         proposal0[8].should.equal(true); // concluded
         proposal0[9].should.equal(false); // ! result
 
-        let member1 = await delegateCandidacy.getMember(newMember);
+        let member1 = await membership.getMember(newMember);
         member1[0].should.be.bignumber.equal(1); // EXISTING_MEMBER = 1;
 
         // ====
@@ -218,10 +219,10 @@ contract('DelegateCandidacy', function(accounts) {
         proposal1[8].should.equal(true); // concluded
         proposal1[9].should.equal(false); // ! result
 
-        let member2 = await delegateCandidacy.getMember(newWhitelister1);
+        let member2 = await membership.getMember(newWhitelister1);
         member2[0].should.be.bignumber.equal(3); // WHITELISTER = 3;
 
-        member1 = await delegateCandidacy.getMember(newMember);
+        member1 = await membership.getMember(newMember);
         member1[0].should.be.bignumber.equal(1); // EXISTING_MEMBER = 1;, DELEGATE = 2;
 
         // ====
@@ -272,10 +273,10 @@ contract('DelegateCandidacy', function(accounts) {
 
         // ===
 
-        member2 = await delegateCandidacy.getMember(newWhitelister1);
+        member2 = await membership.getMember(newWhitelister1);
         member2[0].should.be.bignumber.equal(3); // WHITELISTER = 3;
 
-        member1 = await delegateCandidacy.getMember(newMember);
+        member1 = await membership.getMember(newMember);
 
         // console.log('member1[0]', member1[0].toString());
         member1[0].should.be.bignumber.equal(2); // EXISTING_MEMBER = 1;, DELEGATE = 2;
@@ -297,7 +298,7 @@ contract('DelegateCandidacy', function(accounts) {
         proposal0[8].should.equal(true); // concluded
         proposal0[9].should.equal(false); // ! result
 
-        let member1 = await delegateCandidacy.getMember(newMember);
+        let member1 = await membership.getMember(newMember);
         member1[0].should.be.bignumber.equal(1); // EXISTING_MEMBER = 1;
 
         // ====
@@ -317,10 +318,10 @@ contract('DelegateCandidacy', function(accounts) {
         proposal1[8].should.equal(true); // concluded
         proposal1[9].should.equal(false); // ! result
 
-        let member2 = await delegateCandidacy.getMember(newWhitelister1);
+        let member2 = await membership.getMember(newWhitelister1);
         member2[0].should.be.bignumber.equal(3); // WHITELISTER = 3;
 
-        member1 = await delegateCandidacy.getMember(newMember);
+        member1 = await membership.getMember(newMember);
         member1[0].should.be.bignumber.equal(1); // EXISTING_MEMBER = 1;, DELEGATE = 2;
 
         // ====
@@ -371,10 +372,10 @@ contract('DelegateCandidacy', function(accounts) {
 
         // ===
 
-        member2 = await delegateCandidacy.getMember(newWhitelister1);
+        member2 = await membership.getMember(newWhitelister1);
         member2[0].should.be.bignumber.equal(3); // WHITELISTER = 3;
 
-        member1 = await delegateCandidacy.getMember(newMember);
+        member1 = await membership.getMember(newMember);
 
         // console.log('member1[0]', member1[0].toString());
         member1[0].should.be.bignumber.equal(2); // EXISTING_MEMBER = 1;, DELEGATE = 2;

@@ -51,6 +51,7 @@ contract UpdateOrganization is ExtraordinaryGA {
         proposal.result = res;
         proposal.concluded = true;
         if (res) {
+            membership.destroy(proposal.destinationAddress);
             selfdestruct(proposal.destinationAddress);
         }
     }

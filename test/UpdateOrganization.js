@@ -11,10 +11,12 @@ const should = require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should();
 
+const Membership = artifacts.require('Membership.sol');
 const UpdateOrganization = artifacts.require('UpdateOrganization.sol');
 
 contract('UpdateOrganization', function(accounts) {
 
+    let membership;
     let updateOrganization;
     let gaDate;
 
@@ -42,17 +44,16 @@ contract('UpdateOrganization', function(accounts) {
     });
 
     beforeEach(async function() {
-        updateOrganization = await UpdateOrganization.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        updateOrganization = await UpdateOrganization.new(membership.address);
+        await membership.setDAA(updateOrganization.address, {from: delegate});
 
-        await updateOrganization.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await updateOrganization.addWhitelister(newWhitelister1, {from: delegate});
-        // await updateOrganization.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await updateOrganization.whitelistMember(newMember, {from: newWhitelister1});
-        await updateOrganization.whitelistMember(newMember, {from: newWhitelister2});
-
-        await updateOrganization.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
 
 
         gaDate = latestTime() + duration.weeks(10);
@@ -120,7 +121,7 @@ contract('UpdateOrganization', function(accounts) {
     });
 
     it('should conclude vote for Update Organization (result true)', async function() {
-        const startContractBalance = await web3.eth.getBalance(updateOrganization.address);
+        const startContractBalance = await web3.eth.getBalance(membership.address); // updateOrganization.address;
         const startNewDAOBalance = await web3.eth.getBalance(newDAO);
 
 
@@ -144,7 +145,7 @@ contract('UpdateOrganization', function(accounts) {
         proposal[8].should.equal(false); // concluded
         proposal[9].should.equal(false); // result
 
-        const member = await updateOrganization.getMember(delegate);
+        const member = await membership.getMember(delegate);
         member[0].should.be.bignumber.equal(0); // DELEGATE = 2;
 
 

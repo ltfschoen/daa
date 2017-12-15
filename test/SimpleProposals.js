@@ -15,10 +15,12 @@ function toAscii(hexString) {
     return web3.toAscii(hexString).replace(/\0/g, '');
 }
 
+const Membership = artifacts.require('Membership.sol');
 const SimpleProposals = artifacts.require('SimpleProposals.sol');
 
 contract('SimpleProposals', function(accounts) {
 
+    let membership;
     let simpleProposals;
 
     const membershipFee = new web3.BigNumber(web3.toWei(0.1, 'ether'));
@@ -41,17 +43,16 @@ contract('SimpleProposals', function(accounts) {
     });
 
     beforeEach(async function() {
-        simpleProposals = await SimpleProposals.new(membershipFee, newWhitelister1, newWhitelister2);
+        membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
+        simpleProposals = await SimpleProposals.new(membership.address);
+        await membership.setDAA(simpleProposals.address, {from: delegate});
 
-        await simpleProposals.requestMembership({from: newMember});
+        await membership.requestMembership({from: newMember});
 
-        // await simpleProposals.addWhitelister(newWhitelister1, {from: delegate});
-        // await simpleProposals.addWhitelister(newWhitelister2, {from: delegate});
+        await membership.whitelistMember(newMember, {from: newWhitelister1});
+        await membership.whitelistMember(newMember, {from: newWhitelister2});
 
-        await simpleProposals.whitelistMember(newMember, {from: newWhitelister1});
-        await simpleProposals.whitelistMember(newMember, {from: newWhitelister2});
-
-        await simpleProposals.payMembership({from: newMember, value: membershipFee});
+        await membership.payMembership({from: newMember, value: membershipFee});
     });
 
     it('should submit proposal', async function() {
