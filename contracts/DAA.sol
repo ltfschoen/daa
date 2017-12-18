@@ -12,7 +12,9 @@ import './UpdateOrganization.sol';
 
 contract DAA is SimpleProposals, Discharge, DelegateCandidacy, ExpelMember, Dissolution, ChangeStatutes, UpdateOrganization {
 
-    function DAA(address _membership) SimpleProposals(_membership) {
+    function DAA(address _membership) SimpleProposals(_membership) Discharge(_membership)
+        DelegateCandidacy(_membership) ExpelMember(_membership)
+        Dissolution(_membership) ChangeStatutes(_membership) UpdateOrganization(_membership) { // TODO:
 
     }
 
