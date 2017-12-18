@@ -12,11 +12,13 @@ const should = require('chai')
   .should();
 
 const Membership = artifacts.require('Membership.sol');
+const ExtraordinaryGA = artifacts.require('ExtraordinaryGA.sol');
 const UpdateOrganization = artifacts.require('UpdateOrganization.sol');
 
 contract('UpdateOrganization', function(accounts) {
 
     let membership;
+    let extraordinaryGA;
     let updateOrganization;
     let gaDate;
 
@@ -45,7 +47,8 @@ contract('UpdateOrganization', function(accounts) {
 
     beforeEach(async function() {
         membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
-        updateOrganization = await UpdateOrganization.new(membership.address);
+        extraordinaryGA = await ExtraordinaryGA.new(membership.address);
+        updateOrganization = await UpdateOrganization.new(membership.address, extraordinaryGA.address);
         await membership.setDAA(updateOrganization.address, {from: delegate});
 
         await membership.requestMembership({from: newMember});
@@ -57,17 +60,17 @@ contract('UpdateOrganization', function(accounts) {
 
 
         gaDate = latestTime() + duration.weeks(10);
-        await updateOrganization.proposeGeneralAssemblyDate(gaDate, {from: newMember});
-        await updateOrganization.voteForGeneralAssemblyDate(0, true, {from: newMember});
+        await extraordinaryGA.proposeGeneralAssemblyDate(gaDate, {from: newMember});
+        await extraordinaryGA.voteForGeneralAssemblyDate(0, true, {from: newMember});
 
         const endTime =   latestTime() + prGADuration;
         const afterEndTime = endTime + duration.seconds(1);
 
         await increaseTimeTo(afterEndTime);
-        await updateOrganization.concludeGeneralAssemblyVote(0, {from: delegate});
+        await extraordinaryGA.concludeGeneralAssemblyVote(0, {from: delegate});
 
         await increaseTimeTo(gaDate);
-        await updateOrganization.startGeneralAssembly(0, {from: delegate});
+        await extraordinaryGA.startGeneralAssembly(0, {from: delegate});
     });
 
     it('should propose Update Organization', async function() {
@@ -97,7 +100,7 @@ contract('UpdateOrganization', function(accounts) {
     });
 
     it('should propose Update Organization (not during GA)', async function() {
-        await updateOrganization.finishCurrentGeneralAssembly({from: delegate});
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate});
 
         try {
             await updateOrganization.proposeUpdate(newDAO, {from: newMember});

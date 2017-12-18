@@ -16,11 +16,13 @@ function toAscii(hexString) {
 }
 
 const Membership = artifacts.require('Membership.sol');
+const ExtraordinaryGA = artifacts.require('ExtraordinaryGA.sol');
 const ChangeStatutes = artifacts.require('ChangeStatutes.sol');
 
 contract('ChangeStatutes', function(accounts) {
 
     let membership;
+    let extraordinaryGA;
     let changeStatutes;
     let gaDate;
 
@@ -51,7 +53,8 @@ contract('ChangeStatutes', function(accounts) {
 
     beforeEach(async function() {
         membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
-        changeStatutes = await ChangeStatutes.new(membership.address);
+        extraordinaryGA = await ExtraordinaryGA.new(membership.address);
+        changeStatutes = await ChangeStatutes.new(membership.address, extraordinaryGA.address);
         await membership.setDAA(changeStatutes.address, {from: delegate});
 
         await membership.requestMembership({from: newMember});
@@ -62,17 +65,17 @@ contract('ChangeStatutes', function(accounts) {
         await membership.payMembership({from: newMember, value: membershipFee});
 
         gaDate = latestTime() + duration.weeks(10);
-        await changeStatutes.proposeGeneralAssemblyDate(gaDate, {from: newMember});
-        await changeStatutes.voteForGeneralAssemblyDate(0, true, {from: newMember});
+        await extraordinaryGA.proposeGeneralAssemblyDate(gaDate, {from: newMember});
+        await extraordinaryGA.voteForGeneralAssemblyDate(0, true, {from: newMember});
 
         const endTime =   latestTime() + prGADuration;
         const afterEndTime = endTime + duration.seconds(1);
 
         await increaseTimeTo(afterEndTime);
-        await changeStatutes.concludeGeneralAssemblyVote(0, {from: delegate});
+        await extraordinaryGA.concludeGeneralAssemblyVote(0, {from: delegate});
 
         await increaseTimeTo(gaDate);
-        await changeStatutes.startGeneralAssembly(0, {from: delegate});
+        await extraordinaryGA.startGeneralAssembly(0, {from: delegate});
     });
 
     it('should set hash of statutes', async function() {
@@ -106,7 +109,7 @@ contract('ChangeStatutes', function(accounts) {
     });
 
     it('should set hash of statutes (not during GA)', async function() {
-        await changeStatutes.finishCurrentGeneralAssembly({from: delegate});
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate});
 
         try {
             await changeStatutes.setHashOfStatutes(hashOfStatutes, {from: newMember});

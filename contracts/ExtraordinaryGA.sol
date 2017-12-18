@@ -29,19 +29,30 @@ contract ExtraordinaryGA is Proposals {
 
     }
 
-    // TODO:
+    /*
     modifier onlyDuringGA() {
         require(generalAssemblies[current].started > 0 // now >= generalAssemblies[current].date
             && generalAssemblies[current].finished == 0);
         _;
     }
 
-    // TODO:
     modifier onlyDuringAnnualGA() {
         require(generalAssemblies[current].annual
             && generalAssemblies[current].started > 0 // now >= generalAssemblies[current].date
             && generalAssemblies[current].finished == 0);
         _;
+    }
+    */
+
+    function isDuringGA() public constant returns (bool) {
+        return generalAssemblies[current].started > 0 &&
+            generalAssemblies[current].finished == 0;
+    }
+
+    function isDuringAnnualGA() public constant returns (bool) {
+        return generalAssemblies[current].annual &&
+            generalAssemblies[current].started > 0 &&
+            generalAssemblies[current].finished == 0;
     }
 
     // Proposal has to be readable by external SC

@@ -12,11 +12,13 @@ const should = require('chai')
   .should();
 
 const Membership = artifacts.require('Membership.sol');
+const ExtraordinaryGA = artifacts.require('ExtraordinaryGA.sol');
 const Discharge = artifacts.require('Discharge.sol');
 
 contract('Discharge', function(accounts) {
 
     let membership;
+    let extraordinaryGA;
     let discharge;
     let annualGADate;
 
@@ -43,7 +45,8 @@ contract('Discharge', function(accounts) {
 
     beforeEach(async function() {
         membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
-        discharge = await Discharge.new(membership.address);
+        extraordinaryGA = await ExtraordinaryGA.new(membership.address);
+        discharge = await Discharge.new(membership.address, extraordinaryGA.address);
         await membership.setDAA(discharge.address, {from: delegate});
 
         await membership.requestMembership({from: newMember});
@@ -55,7 +58,7 @@ contract('Discharge', function(accounts) {
 
 
         annualGADate = latestTime() + duration.weeks(10);
-        await discharge.setAnnualAssemblyDate(annualGADate, {from: delegate});
+        await extraordinaryGA.setAnnualAssemblyDate(annualGADate, {from: delegate});
 
         /*
         const latestAddedGA = await discharge.getLatestAddedGA();
@@ -67,7 +70,7 @@ contract('Discharge', function(accounts) {
         */
 
         await increaseTimeTo(annualGADate);
-        await discharge.startGeneralAssembly(0, {from: delegate});
+        await extraordinaryGA.startGeneralAssembly(0, {from: delegate});
     });
 
     it('should propose Discharge', async function() {
@@ -87,7 +90,7 @@ contract('Discharge', function(accounts) {
     });
 
     it('should propose Discharge (not during annual GA)', async function() {
-        await discharge.finishCurrentGeneralAssembly({from: delegate});
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate});
 
         try {
             await discharge.proposeDischarge({from: delegate});

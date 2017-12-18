@@ -12,11 +12,13 @@ const should = require('chai')
   .should();
 
 const Membership = artifacts.require('Membership.sol');
+const ExtraordinaryGA = artifacts.require('ExtraordinaryGA.sol');
 const DelegateCandidacy = artifacts.require('DelegateCandidacy.sol');
 
 contract('DelegateCandidacy', function(accounts) {
 
     let membership;
+    let extraordinaryGA;
     let delegateCandidacy;
     let gaDate;
 
@@ -45,7 +47,8 @@ contract('DelegateCandidacy', function(accounts) {
 
     beforeEach(async function() {
         membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
-        delegateCandidacy = await DelegateCandidacy.new(membership.address);
+        extraordinaryGA = await ExtraordinaryGA.new(membership.address);
+        delegateCandidacy = await DelegateCandidacy.new(membership.address, extraordinaryGA.address);
         await membership.setDAA(delegateCandidacy.address, {from: delegate});
 
         await membership.requestMembership({from: newMember});
@@ -57,17 +60,17 @@ contract('DelegateCandidacy', function(accounts) {
 
 
         gaDate = latestTime() + duration.weeks(10);
-        await delegateCandidacy.proposeGeneralAssemblyDate(gaDate, {from: newMember});
-        await delegateCandidacy.voteForGeneralAssemblyDate(0, true, {from: newMember});
+        await extraordinaryGA.proposeGeneralAssemblyDate(gaDate, {from: newMember});
+        await extraordinaryGA.voteForGeneralAssemblyDate(0, true, {from: newMember});
 
         const endTime =   latestTime() + prGADuration;
         const afterEndTime = endTime + duration.seconds(1);
 
         await increaseTimeTo(afterEndTime);
-        await delegateCandidacy.concludeGeneralAssemblyVote(0, {from: delegate});
+        await extraordinaryGA.concludeGeneralAssemblyVote(0, {from: delegate});
 
         await increaseTimeTo(gaDate);
-        await delegateCandidacy.startGeneralAssembly(0, {from: delegate});
+        await extraordinaryGA.startGeneralAssembly(0, {from: delegate});
     });
 
     it('should propose Delegate Candidacy', async function() {
@@ -88,7 +91,7 @@ contract('DelegateCandidacy', function(accounts) {
     });
 
     it('should propose Delegate Candidacy (not during GA)', async function() {
-        await delegateCandidacy.finishCurrentGeneralAssembly({from: delegate});
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate});
 
         try {
             await delegateCandidacy.proposeDelegateCandidacy({from: newMember});
@@ -161,7 +164,7 @@ contract('DelegateCandidacy', function(accounts) {
         await delegateCandidacy.proposeDelegateCandidacy({from: newWhitelister1});
         await delegateCandidacy.voteForDelegate(1, {from: newWhitelister2});
 
-        await delegateCandidacy.finishCurrentGeneralAssembly({from: delegate});
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate});
 
         endTime =   latestTime() + duration.minutes(10); // voteTime = 10 minutes;
         afterEndTime = endTime + duration.seconds(1);
@@ -207,7 +210,7 @@ contract('DelegateCandidacy', function(accounts) {
         await delegateCandidacy.proposeDelegateCandidacy({from: newWhitelister1});
         await delegateCandidacy.voteForDelegate(1, {from: newWhitelister2});
 
-        await delegateCandidacy.finishCurrentGeneralAssembly({from: delegate}); // !!!
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate}); // !!!
 
         endTime =   latestTime() + duration.minutes(10); // voteTime = 10 minutes;
         afterEndTime = endTime + duration.seconds(1);
@@ -306,7 +309,7 @@ contract('DelegateCandidacy', function(accounts) {
         await delegateCandidacy.proposeDelegateCandidacy({from: newWhitelister1});
         // ! await delegateCandidacy.voteForDelegate(1, {from: newWhitelister2});
 
-        await delegateCandidacy.finishCurrentGeneralAssembly({from: delegate}); // !!!
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate}); // !!!
 
         endTime =   latestTime() + duration.minutes(10); // voteTime = 10 minutes;
         afterEndTime = endTime + duration.seconds(1);

@@ -12,11 +12,13 @@ const should = require('chai')
   .should();
 
 const Membership = artifacts.require('Membership.sol');
+const ExtraordinaryGA = artifacts.require('ExtraordinaryGA.sol');
 const Dissolution = artifacts.require('Dissolution.sol');
 
 contract('Dissolution', function(accounts) {
 
     let membership;
+    let extraordinaryGA;
     let dissolution;
     let gaDate;
 
@@ -45,7 +47,8 @@ contract('Dissolution', function(accounts) {
 
     beforeEach(async function() {
         membership = await Membership.new(membershipFee, newWhitelister1, newWhitelister2);
-        dissolution = await Dissolution.new(membership.address);
+        extraordinaryGA = await ExtraordinaryGA.new(membership.address);
+        dissolution = await Dissolution.new(membership.address, extraordinaryGA.address);
         await membership.setDAA(dissolution.address, {from: delegate});
 
         await membership.requestMembership({from: newMember});
@@ -57,17 +60,17 @@ contract('Dissolution', function(accounts) {
 
 
         gaDate = latestTime() + duration.weeks(10);
-        await dissolution.proposeGeneralAssemblyDate(gaDate, {from: newMember});
-        await dissolution.voteForGeneralAssemblyDate(0, true, {from: newMember});
+        await extraordinaryGA.proposeGeneralAssemblyDate(gaDate, {from: newMember});
+        await extraordinaryGA.voteForGeneralAssemblyDate(0, true, {from: newMember});
 
         const endTime =   latestTime() + prGADuration;
         const afterEndTime = endTime + duration.seconds(1);
 
         await increaseTimeTo(afterEndTime);
-        await dissolution.concludeGeneralAssemblyVote(0, {from: delegate});
+        await extraordinaryGA.concludeGeneralAssemblyVote(0, {from: delegate});
 
         await increaseTimeTo(gaDate);
-        await dissolution.startGeneralAssembly(0, {from: delegate});
+        await extraordinaryGA.startGeneralAssembly(0, {from: delegate});
     });
 
     it('should propose Dissolution', async function() {
@@ -97,7 +100,7 @@ contract('Dissolution', function(accounts) {
     });
 
     it('should propose Dissolution (not during GA)', async function() {
-        await dissolution.finishCurrentGeneralAssembly({from: delegate});
+        await extraordinaryGA.finishCurrentGeneralAssembly({from: delegate});
 
         try {
             await dissolution.proposeDissolution(beneficiary, {from: newMember});

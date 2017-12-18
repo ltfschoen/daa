@@ -1,10 +1,10 @@
 pragma solidity ^0.4.15;
 
 
-import './ExtraordinaryGA.sol';
+import './BaseGA.sol';
 
 
-contract DelegateCandidacy is ExtraordinaryGA {
+contract DelegateCandidacy is BaseGA {
 
     struct Conclusion {
         uint256 proposalId;
@@ -21,8 +21,8 @@ contract DelegateCandidacy is ExtraordinaryGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function DelegateCandidacy(address _membership)
-        ExtraordinaryGA(_membership) {
+    function DelegateCandidacy(address _membership, address _extraordinaryGA)
+        BaseGA(_membership, _extraordinaryGA) {
 
     }
 
@@ -50,7 +50,7 @@ contract DelegateCandidacy is ExtraordinaryGA {
     // can not vote against
     function voteForDelegate(uint256 proposalId) public onlyMember {
         // Any member can vote for exactly one candidate (or not vote at all)
-        uint256 date = getCurrentGADate();
+        uint256 date = extraordinaryGA.getCurrentGADate();
         require(!isVoted(date, msg.sender));
 
         super.voteForProposal(DELEGATE_CANDIDACY, proposalId, true);
@@ -62,7 +62,7 @@ contract DelegateCandidacy is ExtraordinaryGA {
 
         // Candidate with most votes in favor is new candidate
         // If 2 or more candidates have same and most number of votes, re-vote on only those
-        uint256 date = getCurrentGADate();
+        uint256 date = extraordinaryGA.getCurrentGADate();
 
         Proposal storage proposal = proposals[DELEGATE_CANDIDACY][proposalId];
         concluded[date].push(Conclusion(
@@ -76,7 +76,7 @@ contract DelegateCandidacy is ExtraordinaryGA {
     }
 
     function calculateAllVotesForDelegate() public onlyMember {
-        var (date, started, finished, annual, stepDown) = getCurrentGA();
+        var (date, started, finished, annual, stepDown) = extraordinaryGA.getCurrentGA();
         require(finished > 0);
 
         // wait the latest voting
@@ -149,7 +149,7 @@ contract DelegateCandidacy is ExtraordinaryGA {
             voteTime
         );
 
-        latestProposal[getCurrentGADate()] = proposalId;
+        latestProposal[extraordinaryGA.getCurrentGADate()] = proposalId;
     }
 
 

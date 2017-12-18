@@ -43,6 +43,7 @@ contract Proposals {
     Membership membership;
 
     function Proposals(address _membership) {
+        require(_membership != address(0));
         membership = Membership(_membership);
     }
 

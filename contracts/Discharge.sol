@@ -1,15 +1,15 @@
 pragma solidity ^0.4.15;
 
 
-import './ExtraordinaryGA.sol';
+import './BaseGA.sol';
 
 
-contract Discharge is ExtraordinaryGA {
+contract Discharge is BaseGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function Discharge(address _membership)
-        ExtraordinaryGA(_membership) {
+    function Discharge(address _membership, address _extraordinaryGA)
+        BaseGA(_membership, _extraordinaryGA) {
 
     }
 

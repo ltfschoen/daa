@@ -1,10 +1,10 @@
 pragma solidity ^0.4.15;
 
 
-import './ExtraordinaryGA.sol';
+import './BaseGA.sol';
 
 
-contract ChangeStatutes is ExtraordinaryGA {
+contract ChangeStatutes is BaseGA {
 
     // sha256 hash of the PDF
     bytes32 public currentStatutes;
@@ -13,8 +13,8 @@ contract ChangeStatutes is ExtraordinaryGA {
 
     uint256 private constant voteTime = 10 minutes;
 
-    function ChangeStatutes(address _membership)
-        ExtraordinaryGA(_membership) {
+    function ChangeStatutes(address _membership, address _extraordinaryGA)
+        BaseGA(_membership, _extraordinaryGA) {
 
     }
 
