@@ -12,7 +12,7 @@ import './Dissolution.sol';
 import './ChangeStatutes.sol';
 import './UpdateOrganization.sol';
 
-
+// TODO:
 contract DAA {
 
     // Membership membership;
