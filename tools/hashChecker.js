@@ -1,3 +1,5 @@
+// @TODO: check all relevant library files
+
 const sha3      = require('web3-utils').sha3;
 const fs        = require('fs');
 const assert    = require('assert');
