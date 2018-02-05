@@ -3,7 +3,6 @@
 /node_modules
 /bin
 /build
-/coverage
-/coverageEnv
-coverage.json
+/coverage*
 /out
+/db

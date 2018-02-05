@@ -1,0 +1,30 @@
+{
+    "membershipFee": 1000000,
+    "network": {
+        "develop": {
+            "host":     "localhost",
+            "port":     9545,
+            "chainId":  4447,
+            "gas":      4712388,
+            "gasPrice": 1
+        },
+        "rinkeby": {
+            "from":         "0x0fadbcc6baf38842493ea527759ce7ce1644d0cc",
+            "whitelister1": "0x411A32aDD826cFaF159266A98A176A8C3CD088f3",
+            "whitelister2": "0x2018FF438C45d5a2bBF0Ef511eACF0345eC1E1D1",
+            "host":         "127.0.0.1",
+            "port":         8545,
+            "gas":          6500000,
+            "gasPrice":     100000000000
+        },
+        "mainnet": {
+            "from":         "0x9f43eec1555cf191b15f1788b0c9ff4e43b7f215",
+            "whitelister1": "@TODO: final address here",
+            "whitelister2": "@TODO: final address here",
+            "host":         "127.0.0.1",
+            "port":         8545,
+            "gas":          7500000,
+            "gasPrice":     31000000000
+        }
+    }
+}

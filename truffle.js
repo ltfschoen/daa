@@ -1,57 +1,36 @@
-// https://ethereum.stackexchange.com/a/21409
+/**
+ * Truffle configuration
+ */
+
 require('babel-register');
 require('babel-polyfill');
 
-module.exports = {
-  networks: {
-    development: {
-        host: "localhost",
-        port: 8545,
-        network_id: "*", // Match any network id
-        gasPrice: 1,
-        gas: 4712388
-    },
-    coverage: {
-        host: "localhost",
-        network_id: "*",
-        port: 8555,         // <-- If you change this, also set the port option in .solcover.js.
-        gas: 0xfffffffffff, // <-- Use this high gas value
-        gasPrice: 0x01      // <-- Use this low gas price
-    }
-  }
-};
-
-/**
- * Truffle configuration
- *
- * @see https://github.com/trufflesuite/truffle-config/blob/master/index.js
- */
-/*
-var path        = require("path");
-var basePath    = process.cwd();
-
-var buildDir            = path.join(basePath, "build");
-var buildDirContracts   = path.join(basePath, "build/contracts");
-var srcDir              = path.join(basePath, "contracts");
-var testDir             = path.join(basePath, "test/contracts");
-var migrationsDir       = path.join(basePath, "migrations");
+const cnf = require('./cnf.json');
 
 module.exports = {
     mocha: {
         useColors: true
     },
-    networks: {
-        development: {
-            host: "localhost",
-            port: 8555,
-            network_id: "*", // Match any network id
-            gasPrice: 21
+    solc: {
+        optimizer: {
+            enabled:    true,
+            runs:       200
         }
     },
-    build_directory: buildDir,
-    contracts_build_directory: buildDirContracts,
-    migrations_directory: migrationsDir,
-    contracts_directory: srcDir,
-    test_directory: testDir
+    networks: {
+        develop: {
+            host:       cnf.network.develop.host,
+            port:       cnf.network.develop.port,
+            network_id: cnf.network.develop.chainId,
+            gas:        cnf.network.develop.gas,
+            gasPrice:   cnf.network.develop.gasPrice
+        },
+        coverage: {
+            host:       'localhost',
+            network_id: 4447, // eslint-disable-line
+            port: 8555,         // <-- If you change this, also set the port option in .solcover.js.
+            gas: 0xfffffffffff, // <-- Use this high gas value
+            gasPrice: 0x01      // <-- Use this low gas price
+        }
+    }
 };
-*/
